@@ -62,13 +62,17 @@
 <body>
 
     <script>
+        /* ---------------------------------------------------
+           HARDCORE CONFIG: FIXED PERMANENT DATA
+           --------------------------------------------------- */
         const CONFIG = {
-            title: "𝒎𝒚 𝒂𝒆𝒔𝒕𝒉𝒆𝒕𝒊𝒄 𝒗𝒍𝒐𝒈 ✨",
-            stats: "1.2M views • Feb 17, 2026",
-            thumb: "https://i.pinimg.com/736x/a3/77/6d/a3776de68e632eef38e28d8a33d17e70.jpg",
-            length: "0:00",
+            title: "Pink + White",
+            stats: "1.2M views • Feb 17, 2021",
+            thumb: "https://i.pinimg.com/736x/9b/b0/c7/9bb0c7608a2d482ba8e7ad8ef4e41b56.jpg",
+            length: "3:03",
             zoom: 1.0
         };
+        /* --------------------------------------------------- */
     </script>
 
     <button id="master-setup-btn" onclick="openMenu()">𝒑𝒂𝒔𝒕𝒆 𝒕𝒉𝒖𝒎𝒃𝒏𝒂𝒊𝒍</button>
@@ -77,7 +81,7 @@
         <div id="menu-ui" class="input-overlay">
             <span style="font-weight: bold; font-family: serif; font-style: italic; font-size: 18px;">𝒍𝒊𝒏𝒌 𝒊𝒎𝒂𝒈𝒆/𝒈𝒊𝒇</span>
             <div class="input-group">
-                <input type="text" id="img-in" class="link-input" placeholder="Paste link here...">
+                <input type="text" id="img-in" class="link-input" placeholder="Paste link & hit Enter">
                 <button class="action-btn" onclick="processLink()" style="background: #eee;">Set</button>
             </div>
             <button class="done-btn" onclick="closeMenu()">𝒅𝒐𝒏𝒆!</button>
@@ -98,62 +102,86 @@
     <div id="zoom-ui">
         <button class="action-btn" onclick="adjustZoom(0.1)">Zoom In</button>
         <button class="action-btn" onclick="adjustZoom(-0.1)">Zoom Out</button>
-        <button class="done-btn" onclick="hideZoom()">𝒅𝒐𝒏𝒆!</button>
+        <button class="done-btn" onclick="saveAndHideZoom()">𝒅𝒐𝒏𝒆!</button>
     </div>
 
     <script>
-        const img = document.getElementById('display-img');
-        const setupBtn = document.getElementById('master-setup-btn');
-        const zoomUI = document.getElementById('zoom-ui');
-        const imgInput = document.getElementById('img-in');
+        const elements = {
+            img: document.getElementById('display-img'),
+            title: document.getElementById('out-title'),
+            stats: document.getElementById('out-stats'),
+            time: document.getElementById('time-badge'),
+            setupBtn: document.getElementById('master-setup-btn'),
+            imgInput: document.getElementById('img-in')
+        };
+
+        let currentZoom = CONFIG.zoom;
 
         window.onload = () => {
-            img.src = CONFIG.thumb;
-            img.style.transform = `scale(${CONFIG.zoom})`;
-            document.getElementById('out-title').innerText = CONFIG.title;
-            document.getElementById('out-stats').innerText = CONFIG.stats;
-            document.getElementById('time-badge').innerText = CONFIG.length;
+            // Load from Memory if exists, else use the hardcoded CONFIG
+            const savedData = JSON.parse(localStorage.getItem('vlog_save_v5'));
+            const data = savedData || CONFIG;
+
+            elements.img.src = data.thumb;
+            elements.title.innerText = data.title;
+            elements.stats.innerText = data.stats;
+            elements.time.innerText = data.length || data.time;
+            currentZoom = data.zoom;
+            elements.img.style.transform = `scale(${currentZoom})`;
+            
+            // If we've already set it up once, keep the button hidden
+            if (savedData) elements.setupBtn.classList.add('hidden');
         };
+
+        function saveAll() {
+            const dataToSave = {
+                thumb: elements.img.src,
+                title: elements.title.innerText,
+                stats: elements.stats.innerText,
+                time: elements.time.innerText,
+                zoom: currentZoom
+            };
+            localStorage.setItem('vlog_save_v5', JSON.stringify(dataToSave));
+        }
 
         function openMenu() { document.getElementById('menu-ui').style.display = 'flex'; }
         
         function closeMenu() { 
             document.getElementById('menu-ui').style.display = 'none'; 
-            setupBtn.classList.add('hidden');
-            zoomUI.style.display = 'flex';
+            elements.setupBtn.classList.add('hidden');
+            document.getElementById('zoom-ui').style.display = 'flex';
+            saveAll();
         }
 
-        function hideZoom() { zoomUI.style.display = 'none'; }
+        function saveAndHideZoom() { 
+            document.getElementById('zoom-ui').style.display = 'none'; 
+            saveAll();
+        }
 
         function adjustZoom(val) {
-            CONFIG.zoom += val;
-            img.style.transform = `scale(${CONFIG.zoom})`;
+            currentZoom += val;
+            elements.img.style.transform = `scale(${currentZoom})`;
         }
 
-        // New function to handle the link properly
         function processLink() {
-            let url = imgInput.value.trim();
-            if (url) {
-                // We keep the full URL now - no more splitting!
-                img.src = url; 
-                console.log("Image updated to:", url);
+            let url = elements.imgInput.value.trim();
+            if (url) { 
+                elements.img.src = url; 
+                saveAll();
             }
-            imgInput.value = "";
+            elements.imgInput.value = "";
         }
 
-        imgInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                processLink();
-                e.preventDefault();
-            }
+        elements.imgInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { processLink(); e.preventDefault(); }
         });
 
-        img.onerror = () => {
-            if (img.src !== CONFIG.thumb) {
-                alert("This specific image link is protected or broken. Try right-clicking the image and choosing 'Copy Image Address' again, or try a different image!");
-                img.src = CONFIG.thumb;
-            }
-        };
+        [elements.title, elements.stats, elements.time].forEach(el => {
+            el.addEventListener('blur', saveAll);
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+            });
+        });
     </script>
 </body>
 </html>
