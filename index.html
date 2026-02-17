@@ -14,10 +14,18 @@
 
         body { font-family: Arial, sans-serif; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; background: transparent; user-select: none; }
 
+        /* The Button that vanishes */
+        #master-setup-btn {
+            background: var(--btn-bg); border: none; padding: 8px 15px;
+            border-radius: 8px; cursor: pointer; font-family: serif; font-style: italic;
+            font-weight: bold; margin-bottom: 10px; width: 100%; max-width: 500px;
+        }
+
         /* Media Frame */
         #media-container {
             position: relative; width: 100%; max-width: 500px; aspect-ratio: 16 / 9;
             background: #000; border-radius: 12px; overflow: hidden;
+            cursor: pointer;
         }
 
         #main-video { width: 100%; height: 100%; display: none; position: absolute; z-index: 10; }
@@ -32,33 +40,32 @@
             font-weight: bold; z-index: 5;
         }
 
-        /* Pink Close Button */
+        /* Control Bar */
+        #custom-controls {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 10px; display: none; align-items: center; justify-content: center; gap: 20px; z-index: 101;
+        }
+        .ctrl-btn { cursor: pointer; background: none; border: none; color: white; font-size: 18px; font-weight: bold; }
+
+        /* Close Button */
         #close-vid {
             position: absolute; top: 10px; right: 10px; color: #555; 
             background: var(--done-pink); border-radius: 50%; width: 25px; height: 25px;
             display: none; align-items: center; justify-content: center; 
-            cursor: pointer; z-index: 100; font-weight: bold;
+            cursor: pointer; z-index: 102; font-weight: bold;
         }
         #media-container:hover #close-vid { display: flex; }
 
-        /* Input Pop-up Style */
-        .menu-btn {
-            background: var(--btn-bg); border: none; padding: 8px 15px;
-            border-radius: 8px; cursor: pointer; font-family: serif; font-style: italic;
-            font-weight: bold; margin-bottom: 10px; width: 100%; max-width: 500px;
-        }
-
+        /* Input Pop-up */
         .input-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); z-index: 200;
+            background: rgba(255,255,255,0.95); z-index: 200;
             display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
         }
+        .link-input { width: 80%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
 
-        .link-input {
-            width: 80%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; outline: none;
-        }
-
-        /* Bottom Info */
+        /* Info Section */
         .info-section { width: 100%; max-width: 500px; margin-top: 10px; }
         .title-display { font-size: 12pt; font-weight: bold; color: black; margin: 0; }
         .stats-display { font-size: 10pt; color: var(--gray-text); margin-top: 4px; }
@@ -66,10 +73,10 @@
 </head>
 <body>
 
-    <button class="menu-btn" onclick="openInputs()">𝒑𝒂𝒔𝒕𝒆 𝒕𝒉𝒖𝒎𝒃𝒏𝒂𝒊𝒍</button>
+    <button id="master-setup-btn" onclick="openInputs()">𝒑𝒂𝒔𝒕𝒆 𝒕𝒉𝒖𝒎𝒃𝒏𝒂𝒊𝒍</button>
 
-    <div id="media-container">
-        <div id="input-ui" class="input-overlay">
+    <div id="media-container" onclick="handleContainerClick()">
+        <div id="input-ui" class="input-overlay" onclick="event.stopPropagation()">
             <span style="font-style: italic; font-weight: bold;">𝒍𝒊𝒏𝒌 𝒊𝒎𝒂𝒈𝒆/𝒈𝒊𝒇</span>
             <input type="text" id="img-in" class="link-input" placeholder="Paste link & press Enter">
             
@@ -77,15 +84,21 @@
             <input type="text" id="vid-in" class="link-input" placeholder="Video Link (.mp4)">
             <input type="text" id="music-in" class="link-input" placeholder="Spotify/Apple Embed Link">
             
-            <button class="menu-btn" style="width: 50%;" onclick="closeInputs()">𝒅𝒐𝒏𝒆!</button>
+            <button class="ctrl-btn" style="color: black; background: var(--done-pink); padding: 5px 20px; border-radius: 15px;" onclick="closeInputs(event)">𝒅𝒐𝒏𝒆!</button>
         </div>
 
-        <div id="close-vid" onclick="stopMedia()">✕</div>
+        <div id="close-vid" onclick="stopMedia(event)">✕</div>
         <img id="display-img" src="https://i.pinimg.com/736x/a3/77/6d/a3776de68e632eef38e28d8a33d17e70.jpg">
         <div id="time-badge">0:00</div>
         
         <video id="main-video" muted playsinline></video>
         <div id="music-layer"></div>
+
+        <div id="custom-controls">
+            <button class="ctrl-btn" onclick="skip(-5, event)">-5s</button>
+            <button class="ctrl-btn" onclick="togglePlay(event)">⏯</button>
+            <button class="ctrl-btn" onclick="skip(5, event)">+5s</button>
+        </div>
     </div>
 
     <div class="info-section">
@@ -97,44 +110,64 @@
         const video = document.getElementById('main-video');
         const img = document.getElementById('display-img');
         const musicLayer = document.getElementById('music-layer');
+        const controls = document.getElementById('custom-controls');
+        const setupBtn = document.getElementById('master-setup-btn');
 
         function openInputs() { document.getElementById('input-ui').style.display = 'flex'; }
-        function closeInputs() { document.getElementById('input-ui').style.display = 'none'; }
+        
+        function closeInputs(e) { 
+            e.stopPropagation();
+            document.getElementById('input-ui').style.display = 'none'; 
+            setupBtn.style.display = 'none'; // Button vanishes forever
+        }
 
-        // Handling Enter Keys
-        document.getElementById('img-in').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') { 
-                img.src = e.target.value; 
-                e.target.value = "";
+        // Logic to handle clicking the thumbnail to play
+        function handleContainerClick() {
+            if (video.src && video.style.display !== 'block') {
+                video.style.display = 'block';
+                video.play();
+                controls.style.display = 'flex';
+                document.getElementById('time-badge').style.display = 'none';
+                if (musicLayer.innerHTML !== "") musicLayer.style.display = 'block';
             }
+        }
+
+        // Enter Key Handlers
+        document.getElementById('img-in').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') { img.src = e.target.value; e.target.blur(); }
         });
 
         document.getElementById('vid-in').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                video.src = e.target.value;
-                video.style.display = 'block';
-                video.play();
-                document.getElementById('time-badge').style.display = 'none';
-            }
+            if (e.key === 'Enter') { video.src = e.target.value; e.target.blur(); }
         });
 
         document.getElementById('music-in').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 let link = e.target.value;
-                // Convert Spotify link to Embed if needed
                 if(link.includes('spotify.com') && !link.includes('embed')) {
-                    link = link.replace('open.spotify.com', 'open.spotify.com/embed');
+                    link = link.replace('spotify.com/', 'spotify.com/embed/');
                 }
                 musicLayer.innerHTML = `<iframe src="${link}" width="100%" height="80" frameBorder="0" allow="encrypted-media"></iframe>`;
-                musicLayer.style.display = 'block';
+                e.target.blur();
             }
         });
 
-        function stopMedia() {
+        function togglePlay(e) {
+            e.stopPropagation();
+            video.paused ? video.play() : video.pause();
+        }
+
+        function skip(time, e) {
+            e.stopPropagation();
+            video.currentTime += time;
+        }
+
+        function stopMedia(e) {
+            e.stopPropagation();
             video.pause();
             video.style.display = 'none';
-            musicLayer.innerHTML = '';
             musicLayer.style.display = 'none';
+            controls.style.display = 'none';
             document.getElementById('time-badge').style.display = 'block';
         }
     </script>
