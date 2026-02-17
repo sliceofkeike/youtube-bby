@@ -21,23 +21,28 @@
 
         #media-container {
             position: relative; width: 100%; max-width: 500px; aspect-ratio: 16 / 9;
-            background: #000; border-radius: 12px; overflow: hidden;
+            background: #111; border-radius: 12px; overflow: hidden;
         }
 
-        #display-img { width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1; transition: transform 0.2s ease; }
+        /* The Image/GIF Display */
+        #display-img { 
+            width: 100%; height: 100%; object-fit: cover; 
+            position: absolute; top:0; left:0; z-index: 1; 
+            transition: transform 0.2s ease;
+        }
 
         #time-badge {
             position: absolute; bottom: 8px; right: 8px;
             background: rgba(0, 0, 0, 0.8); color: white;
-            padding: 2px 6px; border-radius: 4px; font-size: 12px;
+            padding: 2px 6px; border-radius: 4px; font-size: 11px;
             font-weight: bold; z-index: 10; cursor: text; outline: none;
         }
 
         .input-overlay {
-            position: absolute; inset: 0; background: rgba(255,255,255,0.98);
-            z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+            position: absolute; inset: 0; background: rgba(255,255,255,0.95);
+            z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 15px;
         }
-        .link-input { width: 80%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; outline: none; font-size: 12px; }
+        .link-input { width: 85%; padding: 12px; border: 2px solid #eee; border-radius: 10px; outline: none; font-size: 14px; }
 
         .info-section { width: 100%; max-width: 500px; margin-top: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
         .text-content { flex-grow: 1; }
@@ -47,8 +52,8 @@
         .three-dots { cursor: pointer; color: black; font-size: 20px; padding: 0 5px; font-weight: bold; }
 
         #zoom-ui { display: none; gap: 10px; margin-top: 10px; }
-        .action-btn { background: white; border: 1px solid #ddd; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 13px; }
-        .done-btn { background: var(--done-pink); border: none; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .action-btn { background: white; border: 1px solid #ddd; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+        .done-btn { background: var(--done-pink); border: none; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; font-family: serif; }
         
         .hidden { display: none !important; }
     </style>
@@ -57,25 +62,24 @@
 
     <script>
         /* ---------------------------------------------------
-           HARDCORE CONFIG: Update these for ALL devices!
+           HARDCORE CONFIG: Edit these to save permanently!
            --------------------------------------------------- */
         const CONFIG = {
             title: "𝒎𝒚 𝒂𝒆𝒔𝒕𝒉𝒆𝒕𝒊𝒄 𝒗𝒍𝒐𝒈 ✨",
             stats: "1.2M views • Feb 17, 2026",
             thumb: "https://i.pinimg.com/736x/a3/77/6d/a3776de68e632eef38e28d8a33d17e70.jpg",
-            length: "4:20",
+            length: "0:00",
             zoom: 1.0
         };
-        /* --------------------------------------------------- */
     </script>
 
     <button id="master-setup-btn" onclick="openMenu()">𝒑𝒂𝒔𝒕𝒆 𝒕𝒉𝒖𝒎𝒃𝒏𝒂𝒊𝒍</button>
 
     <div id="media-container">
         <div id="menu-ui" class="input-overlay">
-            <span style="font-weight: bold; font-family: serif; font-style: italic;">𝒍𝒊𝒏𝒌 𝒊𝒎𝒂𝒈𝒆/𝒈𝒊𝒇</span>
-            <input type="text" id="img-in" class="link-input" placeholder="Paste link & press Enter">
-            <button class="done-btn" onclick="closeMenu()">𝒅𝒐𝒏𝒆!</button>
+            <span style="font-weight: bold; font-family: serif; font-style: italic; font-size: 18px;">𝒍𝒊𝒏𝒌 𝒊𝒎𝒂𝒈𝒆/𝒈𝒊𝒇</span>
+            <input type="text" id="img-in" class="link-input" placeholder="Paste 'Image Address' & hit Enter">
+            <button class="done-btn" style="background: #EDDDEB;" onclick="closeMenu()">𝒅𝒐𝒏𝒆!</button>
         </div>
 
         <img id="display-img" src="">
@@ -93,13 +97,14 @@
     <div id="zoom-ui">
         <button class="action-btn" onclick="adjustZoom(0.1)">Zoom In</button>
         <button class="action-btn" onclick="adjustZoom(-0.1)">Zoom Out</button>
-        <button class="done-btn" onclick="hideZoom()">𝒅𝒐𝒏𝒆!</button>
+        <button class="done-btn" style="background: #EDDDEB;" onclick="hideZoom()">𝒅𝒐𝒏𝒆!</button>
     </div>
 
     <script>
         const img = document.getElementById('display-img');
         const setupBtn = document.getElementById('master-setup-btn');
         const zoomUI = document.getElementById('zoom-ui');
+        const imgInput = document.getElementById('img-in');
 
         window.onload = () => {
             img.src = CONFIG.thumb;
@@ -109,7 +114,9 @@
             document.getElementById('time-badge').innerText = CONFIG.length;
         };
 
-        function openMenu() { document.getElementById('menu-ui').style.display = 'flex'; }
+        function openMenu() { 
+            document.getElementById('menu-ui').style.display = 'flex'; 
+        }
         
         function closeMenu() { 
             document.getElementById('menu-ui').style.display = 'none'; 
@@ -124,9 +131,28 @@
             img.style.transform = `scale(${CONFIG.zoom})`;
         }
 
-        document.getElementById('img-in').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') { img.src = e.target.value; e.target.blur(); }
+        // The "Enter" Logic
+        imgInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                let rawUrl = imgInput.value.trim();
+                if (rawUrl) {
+                    // This cleans the link to ensure it's a raw image link
+                    let cleanUrl = rawUrl.split('?')[0]; 
+                    img.src = cleanUrl;
+                    console.log("Setting image to:", cleanUrl);
+                }
+                imgInput.value = "";
+                e.preventDefault();
+            }
         });
+
+        // If the image fails to load, try the uncleaned raw version
+        img.onerror = () => {
+            if (img.src !== CONFIG.thumb) {
+                console.log("Clean link failed, trying raw link...");
+                // Note: If both fail, it will just show black or the default.
+            }
+        };
     </script>
 </body>
 </html>
