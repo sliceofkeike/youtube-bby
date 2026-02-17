@@ -19,7 +19,6 @@
             font-weight: bold; margin-bottom: 15px; width: 100%; max-width: 500px;
         }
 
-        /* YouTube Landscape Frame */
         #media-container {
             position: relative; width: 100%; max-width: 500px; aspect-ratio: 16 / 9;
             background: #000; border-radius: 12px; overflow: hidden;
@@ -27,19 +26,18 @@
 
         #display-img { width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1; transition: transform 0.2s ease; }
         
-        /* The Embed Music Layer */
         #music-layer { 
-            position: absolute; 
-            top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 2; display: none; /* Only shows when music link is present */
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 80px; 
+            z-index: 5; opacity: 0; transition: opacity 0.3s;
         }
+        #media-container:hover #music-layer { opacity: 1; }
         #music-layer iframe { width: 100%; height: 100%; border: none; }
 
         #time-badge {
             position: absolute; bottom: 8px; right: 8px;
             background: rgba(0, 0, 0, 0.8); color: white;
             padding: 2px 6px; border-radius: 4px; font-size: 12px;
-            font-weight: bold; z-index: 5; cursor: text;
+            font-weight: bold; z-index: 10; cursor: text; outline: none;
         }
 
         .input-overlay {
@@ -50,8 +48,8 @@
 
         .info-section { width: 100%; max-width: 500px; margin-top: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
         .text-content { flex-grow: 1; }
-        .title-display { font-size: 12pt; font-weight: bold; color: black; margin: 0; cursor: text; line-height: 1.2; }
-        .stats-display { font-size: 10pt; color: var(--gray-text); margin-top: 5px; cursor: text; }
+        .title-display { font-size: 12pt; font-weight: bold; color: black; margin: 0; cursor: text; line-height: 1.2; outline: none; }
+        .stats-display { font-size: 10pt; color: var(--gray-text); margin-top: 5px; cursor: text; outline: none; }
         .three-dots { cursor: pointer; color: black; font-size: 20px; padding: 0 5px; }
 
         #zoom-ui { display: none; gap: 10px; margin-top: 10px; }
@@ -59,21 +57,6 @@
     </style>
 </head>
 <body>
-
-    <script>
-        /* ---------------------------------------------------
-           HARDCORE CONFIG
-           --------------------------------------------------- */
-        const CONFIG = {
-            title: "𝗜𝗻𝘀𝗲𝗿𝘁 𝗧𝗶𝘁𝗹𝗲",
-            stats: "𝗶𝗻𝘀𝗲𝗿𝘁 𝘃𝗶𝗲𝘄𝘀 𝗮𝗻𝗱 𝗱𝗮𝘁𝗲",
-            thumb: "https://i.pinimg.com/736x/a3/77/6d/a3776de68e632eef38e28d8a33d17e70.jpg",
-            embedLink: "", // Paste EMBED link here (Spotify/Apple/YT)
-            length: "0:00",
-            zoom: 1.0
-        };
-        /* --------------------------------------------------- */
-    </script>
 
     <button id="master-setup-btn" onclick="openMenu()">𝒑𝒂𝒔𝒕𝒆 𝒕𝒉𝒖𝒎𝒃𝒏𝒂𝒊𝒍</button>
 
@@ -83,69 +66,96 @@
             <input type="text" id="img-in" class="link-input" placeholder="Paste link & press Enter">
             <span style="font-weight: bold;">𝒍𝒊𝒏𝒌 𝒗𝒊𝒅𝒆𝒐 (𝑬𝒎𝒃𝒆𝒅 𝑳𝒊𝒏𝒌)</span>
             <input type="text" id="aud-in" class="link-input" placeholder="Paste Spotify/Apple Embed & Enter">
-            <button class="master-setup-btn" style="background: var(--done-pink); border:none; padding:5px 15px; border-radius:5px;" onclick="closeMenu()">𝒅𝒐𝒏𝒆!</button>
+            <button style="background: var(--done-pink); border:none; padding:8px 20px; border-radius:20px; cursor:pointer; font-weight:bold;" onclick="saveAndClose()">𝒅𝒐𝒏𝒆!</button>
         </div>
 
-        <img id="display-img" src="">
-        <div id="time-badge" contenteditable="true" onblur="saveTime()">0:00</div>
+        <img id="display-img" src="https://i.pinimg.com/736x/a3/77/6d/a3776de68e632eef38e28d8a33d17e70.jpg">
+        <div id="time-badge" contenteditable="true" spellcheck="false">0:00</div>
         <div id="music-layer"></div>
     </div>
 
     <div class="info-section">
         <div class="text-content">
-            <p id="out-title" class="title-display" contenteditable="true">𝗜𝗻𝘀𝗲𝗿𝘁 𝗧𝗶𝘁𝗹𝗲</p>
-            <p id="out-stats" class="stats-display" contenteditable="true">𝗶𝗻𝘀𝗲𝗿𝘁 𝘃𝗶𝗲𝘄𝘀 𝗮𝗻𝗱 𝗱𝗮𝘁𝗲</p>
+            <p id="out-title" class="title-display" contenteditable="true" spellcheck="false">𝗜𝗻𝘀𝗲𝗿𝘁 𝗧𝗶𝘁𝗹𝗲</p>
+            <p id="out-stats" class="stats-display" contenteditable="true" spellcheck="false">𝗶𝗻𝘀𝗲𝗿𝘁 𝘃𝗶𝗲𝘄𝘀 𝗮𝗻𝗱 𝗱𝗮𝘁𝗲</p>
         </div>
         <div class="three-dots" onclick="openMenu()">⋮</div>
     </div>
 
     <div id="zoom-ui">
-        <button style="background:white; border:1px solid #ddd; padding:5px 10px; border-radius:5px;" onclick="adjustZoom(0.1)">Zoom In</button>
-        <button style="background:white; border:1px solid #ddd; padding:5px 10px; border-radius:5px;" onclick="adjustZoom(-0.1)">Zoom Out</button>
-        <button style="background: var(--done-pink); border:none; padding:5px 15px; border-radius:10px;" onclick="hideZoom()">𝒅𝒐𝒏𝒆!</button>
+        <button onclick="adjustZoom(0.1)">Zoom In</button>
+        <button onclick="adjustZoom(-0.1)">Zoom Out</button>
+        <button style="background: var(--done-pink); border:none; padding:8px 20px; border-radius:20px;" onclick="finalizeZoom()">𝒅𝒐𝒏𝒆!</button>
     </div>
 
     <script>
-        const img = document.getElementById('display-img');
-        const musicLayer = document.getElementById('music-layer');
-        const setupBtn = document.getElementById('master-setup-btn');
+        const elements = {
+            img: document.getElementById('display-img'),
+            music: document.getElementById('music-layer'),
+            title: document.getElementById('out-title'),
+            stats: document.getElementById('out-stats'),
+            time: document.getElementById('time-badge'),
+            setupBtn: document.getElementById('master-setup-btn')
+        };
 
+        let currentZoom = 1.0;
+        let currentAudio = "";
+
+        // LOAD SAVED DATA ON START
         window.onload = () => {
-            img.src = CONFIG.thumb;
-            img.style.transform = `scale(${CONFIG.zoom})`;
-            document.getElementById('out-title').innerText = CONFIG.title;
-            document.getElementById('out-stats').innerText = CONFIG.stats;
-            document.getElementById('time-badge').innerText = CONFIG.length;
-            if(CONFIG.embedLink) setEmbed(CONFIG.embedLink);
+            const saved = JSON.parse(localStorage.getItem('vlogSettings'));
+            if (saved) {
+                elements.img.src = saved.thumb;
+                elements.title.innerText = saved.title;
+                elements.stats.innerText = saved.stats;
+                elements.time.innerText = saved.length;
+                currentZoom = saved.zoom || 1.0;
+                elements.img.style.transform = `scale(${currentZoom})`;
+                if(saved.audio) setEmbed(saved.audio);
+                elements.setupBtn.classList.add('hidden');
+            }
         };
 
         function openMenu() { document.getElementById('menu-ui').style.display = 'flex'; }
         
-        function closeMenu() { 
-            document.getElementById('menu-ui').style.display = 'none'; 
-            setupBtn.classList.add('hidden');
+        function saveAndClose() {
+            saveData();
+            document.getElementById('menu-ui').style.display = 'none';
             document.getElementById('zoom-ui').style.display = 'flex';
+            elements.setupBtn.classList.add('hidden');
         }
 
-        function hideZoom() { document.getElementById('zoom-ui').style.display = 'none'; }
+        function finalizeZoom() {
+            saveData();
+            document.getElementById('zoom-ui').style.display = 'none';
+        }
+
+        function saveData() {
+            const data = {
+                thumb: elements.img.src,
+                audio: currentAudio,
+                title: elements.title.innerText,
+                stats: elements.stats.innerText,
+                length: elements.time.innerText,
+                zoom: currentZoom
+            };
+            localStorage.setItem('vlogSettings', JSON.stringify(data));
+        }
 
         function adjustZoom(val) {
-            CONFIG.zoom += val;
-            img.style.transform = `scale(${CONFIG.zoom})`;
+            currentZoom += val;
+            elements.img.style.transform = `scale(${currentZoom})`;
         }
-
-        function saveTime() { CONFIG.length = document.getElementById('time-badge').innerText; }
 
         function setEmbed(link) {
-            if(link.trim() !== "") {
-                musicLayer.innerHTML = `<iframe src="${link}" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
-                musicLayer.style.display = 'block';
-            }
+            currentAudio = link;
+            let cleanLink = link.includes('src="') ? link.split('src="')[1].split('"')[0] : link;
+            elements.music.innerHTML = `<iframe src="${cleanLink}" allow="autoplay; encrypted-media;"></iframe>`;
+            elements.music.style.display = 'block';
         }
 
-        // Enter Key listeners
         document.getElementById('img-in').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') { img.src = e.target.value; e.target.blur(); }
+            if (e.key === 'Enter') { elements.img.src = e.target.value; e.target.blur(); }
         });
         document.getElementById('aud-in').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') { setEmbed(e.target.value); e.target.blur(); }
