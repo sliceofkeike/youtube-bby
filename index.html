@@ -24,7 +24,6 @@
             background: #111; border-radius: 12px; overflow: hidden;
         }
 
-        /* The Image/GIF Display */
         #display-img { 
             width: 100%; height: 100%; object-fit: cover; 
             position: absolute; top:0; left:0; z-index: 1; 
@@ -40,9 +39,11 @@
 
         .input-overlay {
             position: absolute; inset: 0; background: rgba(255,255,255,0.95);
-            z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 15px;
+            z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
         }
-        .link-input { width: 85%; padding: 12px; border: 2px solid #eee; border-radius: 10px; outline: none; font-size: 14px; }
+        
+        .input-group { display: flex; width: 85%; gap: 5px; }
+        .link-input { flex-grow: 1; padding: 12px; border: 2px solid #eee; border-radius: 10px; outline: none; font-size: 14px; }
 
         .info-section { width: 100%; max-width: 500px; margin-top: 12px; display: flex; justify-content: space-between; align-items: flex-start; }
         .text-content { flex-grow: 1; }
@@ -61,9 +62,6 @@
 <body>
 
     <script>
-        /* ---------------------------------------------------
-           HARDCORE CONFIG: Edit these to save permanently!
-           --------------------------------------------------- */
         const CONFIG = {
             title: "𝒎𝒚 𝒂𝒆𝒔𝒕𝒉𝒆𝒕𝒊𝒄 𝒗𝒍𝒐𝒈 ✨",
             stats: "1.2M views • Feb 17, 2026",
@@ -78,8 +76,11 @@
     <div id="media-container">
         <div id="menu-ui" class="input-overlay">
             <span style="font-weight: bold; font-family: serif; font-style: italic; font-size: 18px;">𝒍𝒊𝒏𝒌 𝒊𝒎𝒂𝒈𝒆/𝒈𝒊𝒇</span>
-            <input type="text" id="img-in" class="link-input" placeholder="Paste 'Image Address' & hit Enter">
-            <button class="done-btn" style="background: #EDDDEB;" onclick="closeMenu()">𝒅𝒐𝒏𝒆!</button>
+            <div class="input-group">
+                <input type="text" id="img-in" class="link-input" placeholder="Paste link here...">
+                <button class="action-btn" onclick="processLink()" style="background: #eee;">Set</button>
+            </div>
+            <button class="done-btn" onclick="closeMenu()">𝒅𝒐𝒏𝒆!</button>
         </div>
 
         <img id="display-img" src="">
@@ -97,7 +98,7 @@
     <div id="zoom-ui">
         <button class="action-btn" onclick="adjustZoom(0.1)">Zoom In</button>
         <button class="action-btn" onclick="adjustZoom(-0.1)">Zoom Out</button>
-        <button class="done-btn" style="background: #EDDDEB;" onclick="hideZoom()">𝒅𝒐𝒏𝒆!</button>
+        <button class="done-btn" onclick="hideZoom()">𝒅𝒐𝒏𝒆!</button>
     </div>
 
     <script>
@@ -114,9 +115,7 @@
             document.getElementById('time-badge').innerText = CONFIG.length;
         };
 
-        function openMenu() { 
-            document.getElementById('menu-ui').style.display = 'flex'; 
-        }
+        function openMenu() { document.getElementById('menu-ui').style.display = 'flex'; }
         
         function closeMenu() { 
             document.getElementById('menu-ui').style.display = 'none'; 
@@ -131,26 +130,28 @@
             img.style.transform = `scale(${CONFIG.zoom})`;
         }
 
-        // The "Enter" Logic
+        // New function to handle the link properly
+        function processLink() {
+            let url = imgInput.value.trim();
+            if (url) {
+                // We keep the full URL now - no more splitting!
+                img.src = url; 
+                console.log("Image updated to:", url);
+            }
+            imgInput.value = "";
+        }
+
         imgInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                let rawUrl = imgInput.value.trim();
-                if (rawUrl) {
-                    // This cleans the link to ensure it's a raw image link
-                    let cleanUrl = rawUrl.split('?')[0]; 
-                    img.src = cleanUrl;
-                    console.log("Setting image to:", cleanUrl);
-                }
-                imgInput.value = "";
+                processLink();
                 e.preventDefault();
             }
         });
 
-        // If the image fails to load, try the uncleaned raw version
         img.onerror = () => {
             if (img.src !== CONFIG.thumb) {
-                console.log("Clean link failed, trying raw link...");
-                // Note: If both fail, it will just show black or the default.
+                alert("This specific image link is protected or broken. Try right-clicking the image and choosing 'Copy Image Address' again, or try a different image!");
+                img.src = CONFIG.thumb;
             }
         };
     </script>
